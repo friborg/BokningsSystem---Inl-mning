@@ -13,7 +13,7 @@ namespace BokningsSystem___Inlämning
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Test");
+            Methods.RunApplication();
         }
     }
 }
