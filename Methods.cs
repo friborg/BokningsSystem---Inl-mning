@@ -161,9 +161,9 @@ namespace BokningsSystem___Inlämning
         }
         private static void BookRoom()
         {
-            Console.WriteLine("Which date do you want to check in? MM/DD/YY HH:MM:SS");
+            Console.WriteLine("Which date do you want to check in? MM/DD/YY");
             DateTime checkInDate = DateTime.Parse(Console.ReadLine());
-            Console.WriteLine("Which date do you want to check out? MM/DD/YY HH:MM:SS");
+            Console.WriteLine("Which date do you want to check out? MM/DD/YY");
             DateTime checkOutDate = DateTime.Parse(Console.ReadLine());
 
             using (var db = new Context())
@@ -174,7 +174,7 @@ namespace BokningsSystem___Inlämning
                                      select h;
                 foreach (var r in availableRooms)
                 {
-                    Console.WriteLine($"RoomNumber: {r.RoomNumber}");
+                    Console.WriteLine($"RoomNumber: {r.RoomNumber}"); // funkar inte 
                 }
 
                 Console.WriteLine("All rooms: ");
