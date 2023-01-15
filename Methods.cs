@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,27 +40,36 @@ namespace BokningsSystem___Inlämning
             switch (choice)
             {
                 case 1:
-                    Console.WriteLine("Enter your username: "); // gör till unique? 
+                    Console.WriteLine("Enter your username: ");
                     var userName = Console.ReadLine();
                     Console.WriteLine("Enter your password: "); // kolla att det stämmer, annars "fel lösenord"
                     var password = Console.ReadLine();
-                    loggedInCustomer = userName;
 
-                    Thread.Sleep(1000);
-                    Console.Write(".");
-                    Thread.Sleep(1000);
-                    Console.Write(".");
-                    Thread.Sleep(1000);
-                    Console.Write(".");
-                    Thread.Sleep(1000);
+                    using (var db = new Context())
+                    {
+                        var customers = db.Customers.Where(c => c.UserName == userName).ToList();
+                        foreach (var customer in customers)
+                        {
+                            if (customer.Password == password)
+                            {
+                                loggedInCustomer = userName;
 
-                    MainMenuChoices();
+                                MainMenuChoices();
+                            }
+                            else
+                            {
+                                Console.WriteLine("Wrong password, try again!");
+                                Console.ReadKey();
+                                LogInOptions();
+                            }
+                        }
+                    }
                     break;
                 case 2:
                     MainMenuChoices();
                     break;
                 case 3:
-                    Console.WriteLine("Choose a username: "); 
+                    Console.WriteLine("Choose a username: ");
                     string username = Console.ReadLine(); // säkra så att man måste skriva någonting på alla inputs
                     Console.WriteLine("Choose a password: ");
                     string newPassword = Console.ReadLine();
@@ -125,9 +135,9 @@ namespace BokningsSystem___Inlämning
                     //$"\n[3]" + idé till vg, kunna lämna reviews som syns på startsidan för andra användare 1§sawt56vgfccc287uxzskmj>"%#
                     $"\n[3] Log out");
 
-                int menuChoice = int.Parse(Console.ReadLine());
-                MainMenu(menuChoice);
             }
+            int menuChoice = int.Parse(Console.ReadLine());
+            MainMenu(menuChoice);
         }
         private static void MainMenu(int menuChoice)
         {
@@ -151,7 +161,30 @@ namespace BokningsSystem___Inlämning
         }
         private static void BookRoom()
         {
-            ConfirmBooking();
+            Console.WriteLine("Which date do you want to check in? MM/DD/YY HH:MM:SS");
+            DateTime checkInDate = DateTime.Parse(Console.ReadLine());
+            Console.WriteLine("Which date do you want to check out? MM/DD/YY HH:MM:SS");
+            DateTime checkOutDate = DateTime.Parse(Console.ReadLine());
+
+            using (var db = new Context())
+            {
+                var availableRooms = from h in db.Hotelrooms
+                                     join b in db.Bookedrooms on h.Id equals b.HotelRoomId
+                                     where b.CheckInDate != checkInDate && b.CheckOutDate != checkOutDate
+                                     select h;
+                foreach (var r in availableRooms)
+                {
+                    Console.WriteLine($"RoomNumber: {r.RoomNumber}");
+                }
+
+                Console.WriteLine("All rooms: ");
+                foreach (var room in db.Hotelrooms) // ide; gör en klass för veckor/datum och loopa igenom det samt använd det för bokning?
+                {
+                    Console.WriteLine($"Room-Number: {room.RoomNumber}\tFloor-Number: {room.FloorNumber}\tCapacity: {room.Capacity}\tCost: {room.Cost}");
+                }
+            }
+            Console.ReadKey();
+            //ConfirmBooking();
         }
         private static void ConfirmBooking()
         {
