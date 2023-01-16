@@ -1,10 +1,13 @@
 ﻿using BokningsSystem___Inlämning.Models;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 
 namespace BokningsSystem___Inlämning
 {
@@ -23,7 +26,7 @@ namespace BokningsSystem___Inlämning
         internal static void LogInOptions()
         {
             Console.Clear();
-            Console.WriteLine($"Welcome to Hannas Hotel!" +
+            Console.WriteLine($"Welcome to Hannas Conference-Booking!" +
                 $"\nPlease log in or browse our website as a guest!" +
                 $"\n[1] Log in" +
                 $"\n[2] Log in as guest" +
@@ -128,12 +131,12 @@ namespace BokningsSystem___Inlämning
                 }
                 else { loggedInName = "guest"; }
 
-                Console.WriteLine($"Welcome {loggedInName} to Hannas Hotel!" +
-                    $"\nBrowse our website by choosing from the menu options below!" +
-                    $"\n\n[1] Book a room " +
-                    $"\n[2] Cancel a booked room " +
-                    //$"\n[3]" + idé till vg, kunna lämna reviews som syns på startsidan för andra användare 1§sawt56vgfccc287uxzskmj>"%#
-                    $"\n[3] Log out");
+                Console.WriteLine($"Welcome {loggedInName}! " +
+                    $"\nBrowse our application by choosing from the menu options below!" +
+                    $"\n\n[1] Book a conference room " +
+                    $"\n[2] Cancel a booked conference room " +
+                    //$"\n[3]" + idé till vg, kunna lämna reviews som syns på startsidan för andra användare 
+                    $"\n[3] Log out"); // visa inte denna om det är guest som är inloggad 
 
             }
             int menuChoice = int.Parse(Console.ReadLine());
@@ -161,29 +164,25 @@ namespace BokningsSystem___Inlämning
         }
         private static void BookRoom()
         {
-            Console.WriteLine("Which date do you want to check in? MM/DD/YY");
-            DateTime checkInDate = DateTime.Parse(Console.ReadLine());
-            Console.WriteLine("Which date do you want to check out? MM/DD/YY");
-            DateTime checkOutDate = DateTime.Parse(Console.ReadLine());
+            string toDate = "1/30/2023"; // ta från admin hur långt schemat ska vara 
+            DateTime startDate = DateTime.Today;
+            DateTime enddate = Convert.ToDateTime(toDate);
 
-            using (var db = new Context())
-            {
-                var availableRooms = from h in db.Hotelrooms
-                                     join b in db.Bookedrooms on h.Id equals b.HotelRoomId
-                                     where b.CheckInDate != checkInDate && b.CheckOutDate != checkOutDate
-                                     select h;
-                foreach (var r in availableRooms)
-                {
-                    Console.WriteLine($"RoomNumber: {r.RoomNumber}"); // funkar inte 
-                }
 
-                Console.WriteLine("All rooms: ");
-                foreach (var room in db.Hotelrooms) // ide; gör en klass för veckor/datum och loopa igenom det samt använd det för bokning?
-                {
-                    Console.WriteLine($"Room-Number: {room.RoomNumber}\tFloor-Number: {room.FloorNumber}\tCapacity: {room.Capacity}\tCost: {room.Cost}");
-                }
-            }
-            Console.ReadKey();
+            //using (var db = new Context())
+            //{
+            //    foreach (var room in db.ConferenceRooms)
+            //    {
+            //        Console.WriteLine($"RoomNumber: {room.RoomNumber}");
+            //    }
+
+            //    Console.WriteLine("All rooms: ");
+            //    foreach (var room in db.ConferenceRooms) // ide; gör en klass för veckor/datum och loopa igenom det samt använd det för bokning?
+            //    {
+            //        Console.WriteLine($"Room-Number: {room.RoomNumber}\tCapacity: {room.Capacity}");
+            //    }
+            //}
+            //Console.ReadKey();
             //ConfirmBooking();
         }
         private static void ConfirmBooking()
@@ -213,21 +212,41 @@ namespace BokningsSystem___Inlämning
                     int newRoomNumber = int.Parse(Console.ReadLine());
                     Console.WriteLine("Enter the floor-number of the new room: ");
                     int newFloorNumber = int.Parse(Console.ReadLine());
-                    Console.WriteLine("How many people can be booked in the new room?");
+                    Console.WriteLine("How many chairs/spaces is there?");
                     int newRoomCapacity = int.Parse(Console.ReadLine());
-                    Console.WriteLine("How much does the new room cost? (Per night)");
-                    int newRoomCost = int.Parse(Console.ReadLine());
+                    //Console.WriteLine("Does the room have a whiteboard? y / n");
+                    //var choice = Console.ReadLine();
+                    //bool whiteBoard;
+                    //if (choice == "y")
+                    //{
+                    //    whiteBoard = true;
+                    //}
+                    //else if (choice == "n")
+                    //{
+                    //    whiteBoard= false;
+                    //}
+                    //bool projector;
+                    //Console.WriteLine("Does the room have a projector? y / n");
+                    //var choice2 = Console.ReadLine();
+                    //if (choice == "y")
+                    //{
+                    //    projector = true;
+                    //}
+                    //else if (choice == "n")
+                    //{
+                    //    projector = false;
+                    //}
 
                     using (var db = new Context())
                     {
-                        var newRoom = new HotelRoom
+                        var newRoom = new ConferenceRoom
                         {
                             RoomNumber = newRoomNumber,
-                            FloorNumber = newFloorNumber,
-                            Capacity = newRoomCapacity,
-                            Cost = newRoomCost
+                            Capacity = newRoomCapacity
+                            //WhiteBoard = whiteBoard,
+                            //Projector = projector
                         };
-                        var roomList = db.Hotelrooms;
+                        var roomList = db.ConferenceRooms;
                         roomList.Add(newRoom);
                         db.SaveChanges();
                     }

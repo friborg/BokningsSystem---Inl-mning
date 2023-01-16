@@ -10,12 +10,11 @@ namespace BokningsSystem___Inlämning.Models
     public partial class BookedRoom
     {
         public int Id { get; set; }
-        public int HotelRoomId { get; set; }
+        public int ConferenceRoomId { get; set; }
         public int CustomerId { get; set; }
-        public DateTime CheckInDate { get; set; }
-        public DateTime CheckOutDate { get; set; }
+        public DateTime BookedDate { get; set; }
 
         public virtual Customer? Customer { get; set; }
-        public virtual HotelRoom? HotelRoom { get; set; }
+        public virtual ConferenceRoom? HotelRoom { get; set; }
     }
 }

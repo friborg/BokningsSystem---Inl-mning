@@ -12,7 +12,7 @@ namespace BokningsSystem___Inlämning
     {
         public Context() { }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<HotelRoom> Hotelrooms { get; set; }
+        public DbSet<ConferenceRoom> ConferenceRooms { get; set; }
         public DbSet<BookedRoom> Bookedrooms { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
