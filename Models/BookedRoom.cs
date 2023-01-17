@@ -11,8 +11,9 @@ namespace BokningsSystem___Inlämning.Models
     {
         public int Id { get; set; }
         public int ConferenceRoomId { get; set; }
-        public int CustomerId { get; set; }
-        public DateTime BookedDate { get; set; }
+        public int? CustomerId { get; set; }
+        public int Week { get; set; }
+        public int Day { get; set; }
 
         public virtual Customer? Customer { get; set; }
         public virtual ConferenceRoom? HotelRoom { get; set; }
