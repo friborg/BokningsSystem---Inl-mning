@@ -20,7 +20,7 @@ namespace BokningsSystem___Inlämning
             if(!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(@"Server=.\SQLEXPRESS; Database=BookingApplication;
-                Trusted_Connection=True;");
+                Trusted_Connection=True;MultipleActiveResultSets=true;");
             }
         }
     }

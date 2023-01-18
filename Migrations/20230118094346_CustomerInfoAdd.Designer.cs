@@ -4,6 +4,7 @@ using BokningsSystem___Inlämning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BokningsSystem___Inlämning.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20230118094346_CustomerInfoAdd")]
+    partial class CustomerInfoAdd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +50,7 @@ namespace BokningsSystem___Inlämning.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Bookedrooms", (string)null);
+                    b.ToTable("Bookedrooms");
                 });
 
             modelBuilder.Entity("BokningsSystem___Inlämning.Models.ConferenceRoom", b =>
@@ -80,7 +82,7 @@ namespace BokningsSystem___Inlämning.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ConferenceRooms", (string)null);
+                    b.ToTable("ConferenceRooms");
                 });
 
             modelBuilder.Entity("BokningsSystem___Inlämning.Models.Customer", b =>
@@ -108,7 +110,7 @@ namespace BokningsSystem___Inlämning.Migrations
                     b.HasIndex("SocialSecurityNumber")
                         .IsUnique();
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("BokningsSystem___Inlämning.Models.BookedRoom", b =>

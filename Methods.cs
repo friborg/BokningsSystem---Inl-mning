@@ -6,8 +6,6 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper;
-using System.Globalization;
 
 namespace BokningsSystem___Inlämning
 {
@@ -21,62 +19,89 @@ namespace BokningsSystem___Inlämning
                 Console.ReadKey(true);
             }
         }
-
-        private static void BookRoom()
+        private static void PrintSchedule(int week, List<string> days)
         {
             using (var db = new Context())
             {
-                Console.WriteLine("Ange kundens namn: ");
-                string customerName = Console.ReadLine();
-                var customer = new Customer
+                int dayCounter = 0;
+                int bookedRoomId = 0;
+                string status = "";
+                foreach (var day in days)
                 {
-                    Name = customerName
-                };
-                var customerList = db.Customers;
-                customerList.Add(customer);
-                // gör till metod, möjlighet att välja befintlig 
-
-
-                bool runSchedule = true;
-                int week = 1;
-                List<string> days = new List<string>();
-                string[] dayNames = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
-                days.AddRange(dayNames);
-                while (runSchedule)   // få schemat att uppdateras i real-tid && visa när rum är upptagna eller lediga 
-                {
-                    Console.WriteLine($"Week number: {week}\n" +
-                        $"Press + or - to navigate the weekly schedule.");
-                    string input = Console.ReadLine();
-                    if (input == "+")
+                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                    Console.WriteLine($"\n{day}");
+                    Console.ResetColor();
+                    dayCounter++;
+                    foreach (var room in db.ConferenceRooms)
                     {
-                        week++;
-                    }
-                    if (input == "-" && week > 0)
-                    {
-                        week--;
-                    }
-                    else if (input == "-" && week == 0)
-                    {
-                        Console.WriteLine("You cannot view weeks prior to this!");
-                    }
-
-                    foreach (var day in days)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                        Console.WriteLine($"\n{day}");
-                        Console.ResetColor();
-                        foreach (var room in db.ConferenceRooms)
+                        foreach (var r in db.Bookedrooms.Where(x => x.ConferenceRoomId == room.Id))
                         {
-                            Console.WriteLine($"Id: {room.Id}  Name: {room.Name}\tCapacity: {room.Capacity}");
+                            if (r.Week == week && r.Day == dayCounter)
+                            {
+                                status = "Booked!";
+                                bookedRoomId = r.ConferenceRoomId;
+                                break;
+                            }
+                            else
+                            {
+                                status = "Available!";
+                                bookedRoomId = r.ConferenceRoomId;
+                                break;
+                            }
                         }
+                        Console.WriteLine($"Id: {room.Id}  Name: {room.Name}\tCapacity: {room.Capacity}\t{status}\n");
                     }
-                    Console.WriteLine("Input room-id of the room you wish to book:");
-                    int roomId = int.Parse(Console.ReadLine());
-                    Console.WriteLine("Which day do you want to book? (1-5)");
-                    int dayInput = int.Parse(Console.ReadLine());
-                    foreach (var r in db.ConferenceRooms.Where(x => x.Id == roomId))
+                }
+            }
+        }
+        private static void BookingInfoInput(int week)
+        {
+            Console.WriteLine("Input room-id of the room you wish to book:"); // fångar denna input istället för weeks
+            int roomId = int.Parse(Console.ReadLine());
+            Console.WriteLine("Which day do you want to book? (1-5)");
+            int dayInput = int.Parse(Console.ReadLine());
+            Console.WriteLine("[1]Add new customer or [2] choose existing?");
+            int choice = int.Parse(Console.ReadLine());
+            int cId = 0;
+            using (var db = new Context())
+            {
+
+                if (choice == 1)
+                {
+                    Console.WriteLine("Customer name: ");
+                    string customerName = Console.ReadLine();
+                    Console.WriteLine("Customer social security number: ");
+                    string socialSecurityNumber = Console.ReadLine();
+                    Console.WriteLine("Customer phone number: ");
+                    string phoneNumber = Console.ReadLine();
+
+                    var customer = new Customer
                     {
-                        // if (week inte är bokad eller något)
+                        Name = customerName,
+                        SocialSecurityNumber = socialSecurityNumber,
+                        PhoneNumber = phoneNumber
+                    };
+                    var customerList = db.Customers;
+                    customerList.Add(customer);
+                    db.SaveChanges();
+                    return;
+                }
+                else if (choice == 2)
+                {
+                    foreach (var customer in db.Customers)
+                    {
+                        Console.WriteLine($"Id: [{customer.Id}]\tName: {customer.Name}\n" +
+                            $"Social security number: {customer.SocialSecurityNumber}\tPhone number: {customer.PhoneNumber}");
+                    }
+                    Console.WriteLine("Choose a customer-id:");
+                    cId = int.Parse(Console.ReadLine());
+
+                    var rooms = from r in db.ConferenceRooms  // kanske inte kan joina här heller 
+                                join b in db.Bookedrooms on r.Id equals b.ConferenceRoomId into allRooms
+                                from ar in allRooms.DefaultIfEmpty()
+                                select new { Id = r.Id, Name = r.Name, Capacity = r.Capacity, BookedRoomId = ar.ConferenceRoomId, Day = ar.Day, Week = ar.Week };
+                    foreach (var r in rooms.Where(x => x.Id == roomId)) // kör tre gånger (för varje rum?)
+                    {
                         var room = new BookedRoom
                         {
                             ConferenceRoomId = roomId,
@@ -90,10 +115,55 @@ namespace BokningsSystem___Inlämning
                     db.SaveChanges();
                 }
             }
-            Console.ReadLine();
-            Console.Clear();
         }
-        //ConfirmBooking();
+        private static void BookRoom()
+        {
+            bool runSchedule = true;
+            bool runWeeks = true;
+            int week = 1;
+            while (runSchedule)
+            {
+                Console.Clear();
+                Console.WriteLine($"Press A to view the next week" +
+                      $"\nPress S to view the previous week " +
+                      $"\nPress D to book a room" +
+                      $"\n\nWeek number: {week}\n");
+
+                List<string> days = new List<string>();
+                string[] dayNames = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+                days.AddRange(dayNames);
+
+                PrintSchedule(week, days);
+
+                if (!Console.KeyAvailable)
+                {
+                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    switch (key.Key)
+                    {
+                        case ConsoleKey.A:
+                            week++;
+                            break;
+                        case ConsoleKey.S:
+                            if (week > 1)
+                            {
+                                week--;
+                            }
+                            else if (week <= 1)
+                            {
+                                Console.WriteLine("You cannot view weeks earlier than this!");
+                            }
+                            break;
+                        case ConsoleKey.D:
+                            runWeeks = false;
+                            BookingInfoInput(week);
+                            break;
+                        default:
+                            Console.WriteLine("Unknown error");
+                            break;
+                    }
+                }
+            }
+        }
         private static void ConfirmBooking()
         {
             using (var db = new Context())
@@ -179,6 +249,7 @@ namespace BokningsSystem___Inlämning
         }
     }
 }
+
 
 
 

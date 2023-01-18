@@ -10,8 +10,8 @@ namespace BokningsSystem___Inlämning.Models
     public partial class BookedRoom
     {
         public int Id { get; set; }
-        public int ConferenceRoomId { get; set; }
-        public int? CustomerId { get; set; }
+        public int ConferenceRoomId { get; set; } 
+        public int CustomerId { get; set; }
         public int Week { get; set; }
         public int Day { get; set; }
 
