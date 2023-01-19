@@ -222,7 +222,7 @@ namespace BokningsSystem___Inlämning
                                                RoomName = r.Name,
                                                RoomNumber = r.RoomNumber,
                                                CustomerName = b.Customer.Name,
-                                               SocialSecurityNumber = b.Customer.Name,
+                                               SocialSecurityNumber = b.Customer.SocialSecurityNumber,
                                                BookedDay = b.Day,
                                                BookedWeek = b.Week
                                            };

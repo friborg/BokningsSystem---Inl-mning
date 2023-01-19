@@ -20,7 +20,7 @@ namespace BokningsSystem___Inlämning
         {
             if(!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(@"Server = tcp:hanna.database.windows.net, 1433; Initial Catalog = bookingappfriborg; Persist Security Info = False; User ID = hannaadmin; Password ={ your_password}; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;");
+                optionsBuilder.UseSqlServer(@"Server = tcp:hanna.database.windows.net, 1433; Initial Catalog = bookingappfriborg; Persist Security Info = False; User ID = hannaadmin; Password = Lösenord1; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;");
             }
         }
     }
