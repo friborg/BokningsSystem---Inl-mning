@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BokningsSystem___Inlämning.Models;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace BokningsSystem___Inlämning
 {
@@ -19,8 +20,7 @@ namespace BokningsSystem___Inlämning
         {
             if(!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(@"Server=.\SQLEXPRESS; Database=BookingApplication;
-                Trusted_Connection=True;MultipleActiveResultSets=true;");
+                optionsBuilder.UseSqlServer(@"Server = tcp:hanna.database.windows.net, 1433; Initial Catalog = bookingappfriborg; Persist Security Info = False; User ID = hannaadmin; Password ={ your_password}; MultipleActiveResultSets = False; Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;");
             }
         }
     }
