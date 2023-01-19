@@ -9,6 +9,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BokningsSystem___Inlämning
 {
+    //Azure användarnamn: adminhanna
+    //Lösenord: Lösenord1
     internal class Program
     {
         static void Main(string[] args)
