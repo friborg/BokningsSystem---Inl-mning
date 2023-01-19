@@ -24,7 +24,6 @@ namespace BokningsSystem___Inlämning
             using (var db = new Context())
             {
                 int dayCounter = 0;
-                int bookedRoomId = 0;
                 string status = "";
                 foreach (var day in days)
                 {
@@ -34,18 +33,16 @@ namespace BokningsSystem___Inlämning
                     dayCounter++;
                     foreach (var room in db.ConferenceRooms)
                     {
-                        foreach (var r in db.Bookedrooms.Where(x => x.ConferenceRoomId == room.Id))
+                        foreach (var r in db.Bookedrooms.Where(x => x.ConferenceRoomId == room.Id)) // skriver ut för många booked och ingen utskrift på rum 1 på måndagen 
                         {
                             if (r.Week == week && r.Day == dayCounter)
                             {
                                 status = "Booked!";
-                                bookedRoomId = r.ConferenceRoomId;
                                 break;
                             }
                             else
                             {
                                 status = "Available!";
-                                bookedRoomId = r.ConferenceRoomId;
                                 break;
                             }
                         }
@@ -54,58 +51,82 @@ namespace BokningsSystem___Inlämning
                 }
             }
         }
-        private static void BookingInfoInput(int week)
+        private static void AddCustomer()
         {
-            Console.WriteLine("Input room-id of the room you wish to book:"); // fångar denna input istället för weeks
-            int roomId = int.Parse(Console.ReadLine());
-            Console.WriteLine("Which day do you want to book? (1-5)");
-            int dayInput = int.Parse(Console.ReadLine());
-            Console.WriteLine("[1]Add new customer or [2] choose existing?");
-            int choice = int.Parse(Console.ReadLine());
-            int cId = 0;
             using (var db = new Context())
             {
+                Console.WriteLine("Customer name: ");
+                string customerName = Console.ReadLine();
+                Console.WriteLine("Customer social security number: ");
+                string socialSecurityNumber = Console.ReadLine();
+                Console.WriteLine("Customer phone number: ");
+                string phoneNumber = Console.ReadLine();
 
-                if (choice == 1)
+                var customer = new Customer
                 {
-                    Console.WriteLine("Customer name: ");
-                    string customerName = Console.ReadLine();
-                    Console.WriteLine("Customer social security number: ");
-                    string socialSecurityNumber = Console.ReadLine();
-                    Console.WriteLine("Customer phone number: ");
-                    string phoneNumber = Console.ReadLine();
+                    Name = customerName,
+                    SocialSecurityNumber = socialSecurityNumber,
+                    PhoneNumber = phoneNumber
+                };
+                var customerList = db.Customers;
+                customerList.Add(customer);
+                db.SaveChanges();
+                Console.WriteLine("The customer has been added, go back to booking to choose from existing customers!" +
+                    "\nPress any key to go to the main menu.");
+                Console.ReadKey();
+                MenuChoices();
+            }
+        }
+        private static void BookingInfoInput(int week)
+        {
+            Console.WriteLine("[1]Add new customer or [2] choose existing?");
+            int choice = int.Parse(Console.ReadLine());
 
-                    var customer = new Customer
+            if (choice == 1)
+            {
+                AddCustomer();
+            }
+            else if (choice == 2)
+            {
+                Console.WriteLine("Input room-id of the room you wish to book:");
+                int roomId = int.Parse(Console.ReadLine());
+                Console.WriteLine("Which day do you want to book? (1-5)");
+                int dayInput = int.Parse(Console.ReadLine());
+                using (var db = new Context())
+                {
+                    var bookedRooms = db.Bookedrooms;
+                    foreach (var r in bookedRooms)
                     {
-                        Name = customerName,
-                        SocialSecurityNumber = socialSecurityNumber,
-                        PhoneNumber = phoneNumber
-                    };
-                    var customerList = db.Customers;
-                    customerList.Add(customer);
-                    db.SaveChanges();
-                    return;
-                }
-                else if (choice == 2)
-                {
+                        if (r.ConferenceRoomId == roomId && r.Day == dayInput && r.Week == week)
+                        {
+                            Console.WriteLine("The room is occupied that day, choose another room, day or week!" +
+                                "\nPress any key to continue.");
+                            Console.ReadKey();
+                            return;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
                     foreach (var customer in db.Customers)
                     {
                         Console.WriteLine($"Id: [{customer.Id}]\tName: {customer.Name}\n" +
                             $"Social security number: {customer.SocialSecurityNumber}\tPhone number: {customer.PhoneNumber}");
                     }
                     Console.WriteLine("Choose a customer-id:");
-                    cId = int.Parse(Console.ReadLine());
+                    int cId = int.Parse(Console.ReadLine());
 
-                    var rooms = from r in db.ConferenceRooms  // kanske inte kan joina här heller 
-                                join b in db.Bookedrooms on r.Id equals b.ConferenceRoomId into allRooms
-                                from ar in allRooms.DefaultIfEmpty()
-                                select new { Id = r.Id, Name = r.Name, Capacity = r.Capacity, BookedRoomId = ar.ConferenceRoomId, Day = ar.Day, Week = ar.Week };
-                    foreach (var r in rooms.Where(x => x.Id == roomId)) // kör tre gånger (för varje rum?)
+                    var customers = from c in db.Customers
+                                    where c.Id == cId
+                                    select c;
+                    foreach (var c in customers)
                     {
                         var room = new BookedRoom
                         {
                             ConferenceRoomId = roomId,
-                            CustomerId = 1,
+                            CustomerId = cId,
                             Week = week,
                             Day = dayInput
                         };
@@ -113,10 +134,12 @@ namespace BokningsSystem___Inlämning
                         bookedList.Add(room);
                     }
                     db.SaveChanges();
+                    Console.Clear();
+                    ConfirmBooking(cId);
                 }
             }
         }
-        private static void BookRoom()
+        private static void RunSchedule()
         {
             bool runSchedule = true;
             bool runWeeks = true;
@@ -164,12 +187,32 @@ namespace BokningsSystem___Inlämning
                 }
             }
         }
-        private static void ConfirmBooking()
+        private static void ConfirmBooking(int customerId)
         {
+            Console.WriteLine("The booking has been placed!\nBelow you can see all of the customers active bookings: ");
             using (var db = new Context())
             {
-
+                var customersBookedRooms = from b in db.Bookedrooms
+                                           join r in db.ConferenceRooms on b.ConferenceRoomId equals r.Id
+                                           where b.CustomerId == customerId
+                                           select new
+                                           {
+                                               RoomName = r.Name,
+                                               RoomNumber = r.RoomNumber,
+                                               CustomerName = b.Customer.Name,
+                                               SocialSecurityNumber = b.Customer.Name,
+                                               BookedDay = b.Day,
+                                               BookedWeek = b.Week
+                                           };
+                foreach (var room in customersBookedRooms) // visar 4 gånger?? fel i metoden där bokningen sparas
+                {
+                    Console.WriteLine($"{room.CustomerName} [{room.SocialSecurityNumber}] has booked {room.RoomName} [{room.RoomNumber}]" +
+                        $"on day {room.BookedDay} of week {room.BookedWeek}\n");
+                }
             }
+            Console.WriteLine("Press any button to go back to the main menu!");
+            Console.ReadLine();
+            MenuChoices();
         }
         private static void AddRoom()
         {
@@ -234,17 +277,70 @@ namespace BokningsSystem___Inlämning
             switch (adminChoice)
             {
                 case 1:
-                    BookRoom();
+                    RunSchedule();
                     break;
                 case 2:
                     AddRoom();
                     break;
                 case 3:
-                    Console.WriteLine("Här ska querys läggas in");
+                    Statistics();
                     break;
                 default:
                     Console.WriteLine("Wrong input, please try again!");
                     break;
+            }
+        }
+        private static void Statistics()
+        {
+            Console.WriteLine("Which statistic do you want to see?" +
+                    "\n[1] 3 most popular conference rooms" +
+                    "\n[2] Most popular day of the week" +
+                    "\n[3] Amount of bookings per week" +
+                    "\n[4] Go back to Admin Menu");
+
+            ConsoleKeyInfo key = Console.ReadKey(true);
+            using (var db = new Context())
+            {
+
+                switch (key.KeyChar)
+                {
+                    case '1':
+                        var topRooms = (from b in db.Bookedrooms
+                                        join r in db.ConferenceRooms on b.ConferenceRoomId equals r.Id
+                                        select new { RoomName = r.Name, }).ToList().GroupBy(p => p.RoomName);
+                        int count = 1;
+                        Console.WriteLine();
+                        foreach (var room in topRooms.OrderByDescending(p => p.Count()).Take(3))
+                        {
+                            Console.WriteLine($"Top {count} : {room.Key} with {room.Count()} bookings\n");
+                            count++;
+                        }
+                        break;
+                    case '2':
+                        var topWeekDay = (from b in db.Bookedrooms
+                                          select new { Day = b.Day }).ToList().GroupBy(b => b.Day);
+
+                        Console.WriteLine();
+                        foreach (var day in topWeekDay.OrderByDescending(b => b.Count()).Take(1))
+                        {
+                            Console.WriteLine($"The most popular day is day {day.Key}\n");
+                        }
+                        break;
+                    case '3': // bookings per week 
+                        var weeklyBookings = (from b in db.Bookedrooms
+                                              select new { Week = b.Week }).ToList().GroupBy(b => b.Week);
+                        int count2 = 1;
+                        Console.WriteLine();
+                        foreach (var day in weeklyBookings.OrderByDescending(b => b.Count()).Take(4))
+                        {
+                            Console.WriteLine($"Week {count2} has {day.Count()} bookings\n");
+                            count2++;
+                        }
+                        break;
+                    default:
+                        Console.WriteLine("Wrong input!");
+                        break;
+                }
             }
         }
     }

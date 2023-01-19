@@ -16,6 +16,6 @@ namespace BokningsSystem___Inlämning.Models
         public int Day { get; set; }
 
         public virtual Customer? Customer { get; set; }
-        public virtual ConferenceRoom? HotelRoom { get; set; }
+        public virtual ConferenceRoom? ConferenceRoom { get; set; }
     }
 }
